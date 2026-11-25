@@ -1,0 +1,12 @@
+[
+  {"q": "How many annual leave days are allowed?", "expected": "18 days", "relevant_chunks_contain": "18 days of paid annual leave"},
+  {"q": "How many days of annual leave can be carried forward?", "expected": "Up to 5 days", "relevant_chunks_contain": "carried forward"},
+  {"q": "How many days of sick leave per year?", "expected": "12 days", "relevant_chunks_contain": "12 days of paid sick leave"},
+  {"q": "How many days can employees work remotely?", "expected": "Up to 2 days per week with manager approval", "relevant_chunks_contain": "remotely up to 2 days"},
+  {"q": "What are the core hours for remote employees?", "expected": "11:00 AM to 4:00 PM", "relevant_chunks_contain": "core hours"},
+  {"q": "Within how many days must expense claims be submitted?", "expected": "30 days", "relevant_chunks_contain": "within 30 days"},
+  {"q": "What is the notice period for resignation?", "expected": "60 days", "relevant_chunks_contain": "notice period"},
+  {"q": "How long is the probation period?", "expected": "3 months", "relevant_chunks_contain": "probation period is 3 months"},
+  {"q": "What is the annual learning budget?", "expected": "25000 INR", "relevant_chunks_contain": "learning budget"},
+  {"q": "What is the CEO's salary?", "expected": "I could not find this information in the available documents.", "relevant_chunks_contain": ""}
+]
