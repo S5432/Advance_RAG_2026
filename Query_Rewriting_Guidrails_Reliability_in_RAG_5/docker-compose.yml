@@ -1,0 +1,76 @@
+# Secrets and URLs come from .env (never commit it). Inside the compose network the services
+# are reached by name, so the connection URLs are overridden below.
+x-app-env: &app-env
+  env_file: .env
+  environment: &app-env-vars
+    REDIS_URL: redis://redis:6379/0
+    DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-rag_db}
+    UPLOAD_DIR: /data/uploads
+
+services:
+  api:
+    build: .
+    <<: *app-env
+    ports:
+      - "8000:8000"
+    volumes:
+      - uploads:/data/uploads        # shared with the worker: API writes, worker reads
+    depends_on:
+      redis: {condition: service_healthy}
+      postgres: {condition: service_healthy}
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: celery -A src.celery_app.celery_app worker --loglevel=info --concurrency=2
+    <<: *app-env
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      redis: {condition: service_healthy}
+      postgres: {condition: service_healthy}
+    restart: unless-stopped
+
+  beat:                              # schedules requeue_stuck_documents every 10 minutes
+    build: .
+    command: celery -A src.celery_app.celery_app beat --loglevel=info
+    <<: *app-env
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      redis: {condition: service_healthy}
+      postgres: {condition: service_healthy}
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes   # keep queued tasks across restarts
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-rag_db}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  uploads:
+  redis_data:
+  pg_data:
