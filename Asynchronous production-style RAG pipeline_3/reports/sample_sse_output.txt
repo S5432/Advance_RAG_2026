@@ -1,0 +1,17 @@
+$ curl -N -H "X-Tenant-ID: company_001" -H "X-User-ID: user_001" -X POST localhost:8000/ask/stream \
+    -H "Content-Type: application/json" -d '{"question":"How many annual leave days are allowed?"}'
+
+event: sources
+data: {"sources": [{"source_id": 1, "document_name": "sample_policy.pdf", "page_number": 2, "section": "Leave Policy", "chunk_id": "doc_ab12_chunk_1", "score": 0.71}]}
+
+event: token
+data: {"content": "Employees are entitled to "}
+
+event: token
+data: {"content": "18 days of paid annual leave. [Source 1]"}
+
+event: done
+data: {"status": "completed", "citations": [{"source_id": 1, "document_name": "sample_policy.pdf", "page_number": 2, "section": "Leave Policy", "chunk_id": "doc_ab12_chunk_1", "score": 0.71, "text": "Leave Policy Employees are entitled to 18 days of paid annual leave per calendar year..."}], "model": "gemini-3.5-flash-lite", "retrieved_chunks": 5}
+
+# NOTE: illustrative output showing the exact event format produced by src/main.py.
+# Replace with your own capture after running the service with real keys.
